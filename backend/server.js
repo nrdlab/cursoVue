@@ -24,7 +24,7 @@ app.use(cors());
 // json-server: crea a API a partir de db.json
 // -------------------------------------------------
 const router = jsonServer.router(
-  path.join(__dirname, "../db/db.json")
+  path.join(__dirname, "/db/db.json")
 );
 // Converte o ficheiro db.json nunha API REST completa
 // (GET, POST, PUT, DELETE)
