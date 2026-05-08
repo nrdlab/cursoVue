@@ -1,89 +1,175 @@
 <template>
   <div class="xestion-tarefas">
-    <h4>📝 Tarefas de {{ usuario?.nome || '---' }}</h4>
+    <h3>📝 Tarefas</h3>
 
-    <!-- Mensaxes segundo estado -->
-    <p v-if="mensaxeExtra && tarefasPendentes">{{ mensaxeExtra }}</p>
-    <p v-if="!usuario">Selecciona un usuario para ver as súas tarefas.</p>
-    <p v-else-if="!tarefas || tarefas.length === 0">Este usuario non ten tarefas asignadas.</p>
+    <!-- FORMULARIO -->
+    <form @submit.prevent="engadirTarefa" class="form-tarefa">
+      <input v-model="novaTarefa.dataLimite" type="date" required />
 
-    <!-- Táboa de tarefas -->
+      <textarea
+        v-model="novaTarefa.titulo"
+        placeholder="Título ou descrición da tarefa"
+        maxlength="256"
+        rows="3"
+        required
+      ></textarea>
+
+      <button type="submit">Grabar tarefa</button>
+    </form>
+
+    <!-- LISTAXE -->
+    <p v-if="tarefas.length === 0">
+      Non hai tarefas.
+    </p>
+
     <table v-else>
       <thead>
         <tr>
-          <th>#</th>
+          <th>ID</th>
           <th>Tarefa</th>
           <th>Data límite</th>
           <th>Estado</th>
           <th>Accións</th>
         </tr>
       </thead>
+
       <tbody>
         <tr v-for="(t, index) in tarefas" :key="index">
-          <td style="text-align: center;">{{ index + 1 }}</td>
-          <td style="text-align: center;">{{ t.titulo }}</td>
-          <td style="text-align: center;">{{ t.dataLimite }}</td>
-          <td style="text-align: center;">{{ t.completada ? '✅' : '❌' }}</td>
-          <!-- Botón para completar tarfea -->
-          <td style="text-align: center;">
-            <button @click="completarTarefa(index)" title="Marcar completada" :disabled="t.competada">☑️</button>
+          <td style="text-align: center">{{ index + 1 }}</td>
+          <td>{{ t.titulo }}</td>
+          <td style="text-align: center">{{ t.dataLimite }}</td>
+          <td style="text-align: center">
+            {{ t.completada ? "✅" : "❌" }}
+          </td>
+          <td style="text-align: center">
+            <button @click="completarTarefa(index)" :disabled="t.completada">
+              ✔️
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
-
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, onMounted } from "vue";
+import {
+  getTarefas,
+  createTarefa,
+  updateTarefa,
+} from "../services/tarefas.service.js";
 
-const props = defineProps({
-  usuario: { type: Object, default: null },
-  tarefas: { type: Array, default: () => [] },
-  mensaxeExtra: { type: String, default: "" }
+const tarefas = ref([]);
+
+const novaTarefa = ref({
+  titulo: "",
+  dataLimite: "",
 });
 
-const tarefasPendentes = computed(() => {
-  debugger;
-  return props.tarefas.some(tarefa => !tarefa.completada);
+//  Cargar tarefas
+onMounted(async () => {
+  const res = await getTarefas();
+  tarefas.value = res.data;
 });
 
-//Evento para comunicar co compoñente pai 
-const emit = defineEmits(['tarefa-completada']);
+//  Crear tarefa
+async function engadirTarefa() {
+  try {
+    const nova = {
+      titulo: novaTarefa.value.titulo,
+      dataLimite: novaTarefa.value.dataLimite,
+      completada: false,
+    };
 
-// Método que indica que unha tarefa foi completada
-function completarTarefa(index) {
-  emit('tarefa-completada', index)
+    const res = await createTarefa(nova);
+    tarefas.value.push(res.data);
+
+    novaTarefa.value.titulo = "";
+    novaTarefa.value.dataLimite = "";
+  } catch (error) {
+    console.error("Erro ao gardar tarefa", error);
+  }
+}
+
+//  Completar tarefa
+async function completarTarefa(index) {
+  const tarefa = tarefas.value[index];
+
+  try {
+    const res = await updateTarefa(tarefa.id, {
+      completada: true,
+    });
+
+    tarefas.value.splice(index, 1, res.data);
+  } catch (error) {
+    console.error("Erro ao actualizar tarefa", error);
+  }
 }
 </script>
 
 <style scoped>
 .xestion-tarefas {
-
   width: 100%;
-  /* opcional para que no crezca demasiado en pantallas muy grandes */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* 👈 centra horizontalmente todo */
   background: white;
   padding: 2rem;
-  overflow: visible;
-  border-radius: 2px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+}
+
+.form-tarefa {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 60%;
+  margin: 0 auto;   /* centra o formulario */
+}
 
 
+.form-tarefa textarea {
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+}
+
+.form-tarefa input {
+  padding: 0.4rem;
+  text-align: center;
+  border: 1px solid #ddd;
+  width: 200px;
+
+}
+.form-tarefa textarea {
+  width: 100%;
+}
+
+.form-tarefa button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  align-self: center;   /* centra o botón */
+}
+
+.tabla-container {
+  display: flex;
+  justify-content: center;
 }
 
 table {
-  width: 100%;
+  width: 80%;
+  max-width: 1000px;
   border-collapse: collapse;
   margin-top: 1rem;
 }
-
 th,
 td {
   border: 1px solid #ddd;
   padding: 0.7rem;
-  text-align: left;
 }
 
 th {
@@ -93,7 +179,6 @@ th {
 
 h4 {
   margin-bottom: 1rem;
-  font-weight: 600;
   background-color: #73aff0;
   color: white;
   padding: 0.5rem;

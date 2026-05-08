@@ -1,28 +1,30 @@
 <template>
   <div class="xestion-usuarios">
     <h4>👥 Xestión de usuarios</h4>
+
     <form @submit.prevent="gardarUsuario">
       <div class="fila">
         <div class="campo campo-dni">
           <label>DNI/CIF:</label>
-          <input v-model="novoUsuario.dni" type="text" required style="text-align: center;" />
+          <input v-model="novoUsuario.dni" type="text" required />
         </div>
+
         <div class="campo campo-nome">
           <label>Nome:</label>
-          <!-- EXERCICIO 3: borde reactivo segundo tipoCuenta -->
-          <input v-model="novoUsuario.nome" type="text" required
-            :style="{ borderColor: novoUsuario.tipoCuenta === 'empresa' ? 'green' : novoUsuario.tipoCuenta === 'particular' ? 'red' : '#ddd' }" />
+          <input v-model="novoUsuario.nome" type="text" required />
         </div>
       </div>
+
       <div class="fila">
         <div class="campo campo-correo">
           <label>Correo:</label>
           <input v-model="novoUsuario.correo" type="email" required />
         </div>
+
         <div class="campo campo-provincia">
           <label>Provincia:</label>
           <select v-model="novoUsuario.provincia">
-            <option value="">-- Escolle unha provincia --</option>
+            <option value="">-- Escolle --</option>
             <option>A Coruña</option>
             <option>Lugo</option>
             <option>Ourense</option>
@@ -30,85 +32,84 @@
           </select>
         </div>
       </div>
+
       <div class="fila fila-centrada">
-        <div class="campo inline-activo">
+        <div class="campo">
           <label>Activo:</label>
-          <div class="inline-control">
-            <input v-model="novoUsuario.activo" type="checkbox" />
-            <span>Activo</span>
-          </div>
+          <input v-model="novoUsuario.activo" type="checkbox" />
         </div>
-        <div class="campo inline-cuenta">
-          <label>Tipo de conta:</label>
-          <div class="inline-control radios">
+
+        <div class="campo">
+          <label>Tipo:</label>
+
+          <div class="radio-group">
             <label>
-              <input v-model="novoUsuario.tipoCuenta" type="radio" value="particular" />
-              <span>Particular</span>
+              <input type="radio" value="particular" v-model="novoUsuario.tipoCuenta" />
+              Particular
             </label>
+
             <label>
-              <input v-model="novoUsuario.tipoCuenta" type="radio" value="empresa" />
-              <span>Empresa</span>
+              <input type="radio" value="empresa" v-model="novoUsuario.tipoCuenta" />
+              Empresa
             </label>
           </div>
         </div>
       </div>
-      <div class="buttons-container">
-        <button type="submit" class="btn-guardar" :disabled="novoUsuario.dni === '' || novoUsuario.nome === ''">
-          Gardar
-        </button>
-        <!---EXERCICIO 1: botón limpar chama a función limparForm()-->
-        <button type="button" class="btn-limpar" @click="limparForm">Limpar</button>
-      </div>
+
+      <button type="submit" class="btn-guardar">
+        Gardar
+      </button>
     </form>
-    <!-- EXERCICIO 4: encabezado con contadores reactivos de activos/inactivos -->
-    <h4>📋 Listaxe de usuarios — Usuarios activos: {{ activos }} | Inactivos: {{ inactivos }}</h4>
-    <table v-if="usuarios.length > 0">
+
+    <h4>📋 Usuarios</h4>
+
+    <table v-if="usuarios.length">
       <thead>
         <tr>
-          <th>#</th>
-          <th>DNI/CIF</th>
+          <th>ID</th>
+          <th>DNI</th>
           <th>Nome</th>
           <th>Correo</th>
           <th>Provincia</th>
-          <th>Activo</th>
-          <th>Tipo de conta</th>
           <th>Accións</th>
         </tr>
       </thead>
+
       <tbody>
-        <!-- EXERCICIO 2: clase reactiva segundo tipoCuenta -->
-        <tr v-for="(u, index) in usuarios" :key="index"
-          :class="{ 'fila-empresa': u.tipoCuenta === 'empresa', 'fila-particular': u.tipoCuenta === 'particular' }">
+        <tr v-for="(u, index) in usuarios" :key="index">
           <td>{{ index + 1 }}</td>
-          <td style="text-align: center;">{{ u.dni }}</td>
+          <td>{{ u.dni }}</td>
           <td>{{ u.nome }}</td>
           <td>{{ u.correo }}</td>
           <td>{{ u.provincia }}</td>
-          <td style="text-align: center;">{{ u.activo ? "✅" : "❌" }}</td>
-          <td>{{ u.tipoCuenta }}</td>
-          <td style="text-align: center;">
-            <button @click="editarUsuario(index)" title="Editar">✏️</button>
-            <button @click="eliminarUsuario(index)" title="Eliminar">🗑️</button>
+
+          <td>
+            <button @click="editarUsuario(index)">✏️</button>
+            <button @click="eliminarUsuario(index)">🗑️</button>
+
+            <!-- SeN params, SeN store -->
+            <router-link to="/tarefas">
+              📝 Tarefas
+            </router-link>
           </td>
         </tr>
       </tbody>
     </table>
 
     <p v-else>Non hai usuarios cargados.</p>
-    <p v-if="aviso"> {{ aviso }}</p>
   </div>
-  <XestionTarefas :usuario="usuarioSeleccionado" :tarefas="tarefasUsuario" mensaxeExtra="Revisa pendentes"
-    @tarefa-completada="marcarTarefaCompletada" />
 </template>
 
 <script setup>
-/// Zona de declaracións
-import { ref, reactive, onMounted, computed } from 'vue'
-import XestionTarefas from './XestionTarefas.vue';
-const usuarios = ref([])  //almacena la lista de usuarios e os seus cambios
-const usuarioSeleccionado = ref(null);
-const tarefasUsuario = ref([]);
-const aviso = ref("");
+import { ref, reactive, onMounted } from "vue";
+import {
+  getUsuarios,
+  createUsuario,
+  updateUsuario,
+  deleteUsuario,
+} from "../services/usuarios.service.js";
+
+const usuarios = ref([]);
 
 const novoUsuario = reactive({
   dni: "",
@@ -116,70 +117,80 @@ const novoUsuario = reactive({
   correo: "",
   provincia: "",
   activo: false,
-  tipoCuenta: ""
-})
+  tipoCuenta: "",
+});
 
-// EXERCICIO 4
-const activos = computed(() => usuarios.value.filter(u => u.activo).length)
-const inactivos = computed(() => usuarios.value.filter(u => !u.activo).length)
+const usuarioSeleccionado = ref(null);
 
-/// Zona de ciclo de vida
+onMounted(() => {
+  cargarUsuarios();
+});
 
-onMounted(() => {       //sempre se cargan estos usuarios de exemplo ao iniciar o componente
-  usuarios.value = [
-    { dni: "A000000C", nome: "Soldaduras SL", correo: "soldadura@email.com", provincia: "A Coruña", activo: true, tipoCuenta: "empresa" },
-    { dni: "0000000C", nome: "María Pérez", correo: "maria@email.com", provincia: "Lugo", activo: false, tipoCuenta: "particular" },
-    { dni: "B1234567D", nome: "Xosé López", correo: "xose@email.com", provincia: "Ourense", activo: true, tipoCuenta: "particular" },
-    { dni: "C9876543E", nome: "Construcións Modernas", correo: "construcion@email.com", provincia: "Pontevedra", activo: true, tipoCuenta: "empresa" }
-  ]
-})
-
-/// Zona de métodos ou funcións
-
-function gardarUsuario() {
-  usuarios.value.push({ ...novoUsuario })  //engade o novo usuario á lista (copia do obxecto)
-  Object.assign(novoUsuario, { dni: "", nome: "", correo: "", provincia: "", activo: false, tipoCuenta: "" }) //reinicia o formulario
+async function cargarUsuarios() {
+  try {
+    const res = await getUsuarios();
+    usuarios.value = res.data;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-function eliminarUsuario(index) {
-  usuarios.value.splice(index, 1);   //elimina o usuario da lista
+async function gardarUsuario() {
+  try {
+    if (usuarioSeleccionado.value) {
+      await updateUsuario(usuarioSeleccionado.value.id, { ...novoUsuario });
+    } else {
+      await createUsuario(novoUsuario);
+    }
+
+    await cargarUsuarios();
+    limparFormulario();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function eliminarUsuario(index) {
+  const usuario = usuarios.value[index];
+
+  try {
+    await deleteUsuario(usuario.id);
+    await cargarUsuarios();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function editarUsuario(index) {
-  const usuario = usuarios.value[index];   //carga os datos do usuario elixido no formulario
-  Object.assign(novoUsuario, usuario);  // carga os datos do usuario no formulario recorda v-model do formulario é novoUsuario
-  usuarioSeleccionado.value = usuario;
-  tarefasUsuario.value = [
-    { titulo: "Tarefa1", dataLimite: "31-12-2025", completada: false },
-    { titulo: "Tarefa2", dataLimite: "01-01-2026", completada: false }
-  ]
+  Object.assign(novoUsuario, usuarios.value[index]);
+  usuarioSeleccionado.value = usuarios.value[index];
 }
 
-function limparForm() {
-  Object.assign(novoUsuario, { dni: "", nome: "", correo: "", provincia: "", activo: false, tipoCuenta: "" }); // reinicia o formulario
-}
+function limparFormulario() {
+  novoUsuario.dni = "";
+  novoUsuario.nome = "";
+  novoUsuario.correo = "";
+  novoUsuario.provincia = "";
+  novoUsuario.activo = false;
+  novoUsuario.tipoCuenta = "";
 
-function marcarTarefaCompletada(index) {
-  tarefasUsuario.value[index].completada = true;
-  aviso.value = `Tarefa "${tarefasUsuario.value[index].titulo}" completada !!!`;
+  usuarioSeleccionado.value = null;
 }
-
 </script>
-
 <style scoped>
+/* Mantemos todo o CSS existente */
 .xestion-usuarios {
-  width: 100%;
-  /* opcional para que no crezca demasiado en pantallas muy grandes */
-  background: white;
+  width: 100;
+  /* ancho del contenedor */
+  margin: 5px auto 2rem auto;
+  /* 60px desde arriba para separar del navbar, centrado horizontalmente */
+  background: #fff;
   padding: 2rem;
-  overflow: visible;
-  border-radius: 2px;
+  border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
 }
 
 form {
-  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -199,67 +210,41 @@ form {
 .campo {
   display: flex;
   align-items: center;
-  /* label e input en la misma línea */
   gap: 0.5rem;
-  border-radius: 0px;
 }
 
 .campo-dni {
   flex: 1;
-  /* ocupa menos espacio */
-  border-radius: 0px;
+}
+
+a {
+  text-decoration: none;
 }
 
 .campo-nome {
   flex: 3;
-  /* ocupa más espacio */
-  border-radius: 0px;
 }
 
 .campo-correo {
   flex: 2;
-  /* ocupa más espacio */
-  border-radius: 0px;
-}
-
-.campo select {
-  flex: 1;
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 0px;
-  width: 100%;
 }
 
 .campo-provincia {
   flex: 1;
-  /* ocupa menos espacio */
-  border-radius: 0px;
 }
 
 .campo label {
   min-width: 80px;
-  /* ancho fijo para alinear */
   font-weight: 500;
-  font: bold
 }
 
-/* EXERCICIO 3: */
-.campo input {
+.campo input,
+.campo select {
   flex: 1;
-  /* ocupa todo el espacio restante */
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 0px;
   box-sizing: border-box;
-  transition: border-color 0.3s ease;
-}
-
-/* EXERCICIO 1: contenedor para aliñar os dous botóns */
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
 }
 
 .btn-guardar {
@@ -267,42 +252,13 @@ form {
   color: white;
   border: none;
   padding: 0.4rem 1.5rem;
-  border-radius: 0px;
   cursor: pointer;
+  margin: 0 auto;
   display: block;
 }
 
 .btn-guardar:hover {
   background-color: #0056b3;
-  border-radius: 0px;
-}
-
-/* EXERCICIO 1: estilo do botón limpar */
-.btn-limpar {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.4rem 1.5rem;
-  border-radius: 0px;
-  cursor: pointer;
-}
-
-.btn-limpar:hover {
-  background-color: #545b62;
-}
-
-.button {
-  background: none;
-  border: 2px solid #ddd;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.inline-control {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding-right: 5rem;
 }
 
 table {
@@ -332,29 +288,10 @@ h4 {
   color: white;
 }
 
-/* EXERCICIO 2: cores de fondo por tipo de usuario */
-.fila-empresa {
-  background-color: #d4edda;
-}
-
-/* verde suave */
-.fila-particular {
-  background-color: #fff3cd;
-}
-
-/* amarillo suave */
-
 @media (max-width: 768px) {
-  .xestion-usuarios {
-    padding: 1rem;
-    /* reducir el padding en pantallas pequeñas */
-  }
-
   .fila {
     flex-direction: column;
-    /* apila los campos verticalmente en móviles */
     gap: 0.5rem;
-    /* opcional: un pequeño espacio entre ellos */
   }
 }
 </style>
