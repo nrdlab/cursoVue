@@ -10,7 +10,7 @@ export const useUsuarioStore = defineStore('usuario', () => {
 
 // Función para seleccionar un usuario e actualizar o estado
 
-  function seleccionarUsuario(usuario) {
+  function seleccionarUsuario(usuario) {debugger;
     id.value = usuario.id
     nome.value = usuario.nome
   }

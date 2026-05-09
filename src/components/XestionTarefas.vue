@@ -1,18 +1,14 @@
 <template>
   <div class="xestion-tarefas">
-    <h3>📝 Tarefas</h3>
+    <h3 v-if="usuario">📝 Código Usuario: {{ usuario.id }} === Tarefas de {{ usuario.nome }}</h3>
+    <p v-else>Non hai usuario seleccionado</p>
 
     <!-- FORMULARIO -->
     <form @submit.prevent="engadirTarefa" class="form-tarefa">
       <input v-model="novaTarefa.dataLimite" type="date" required />
 
-      <textarea
-        v-model="novaTarefa.titulo"
-        placeholder="Título ou descrición da tarefa"
-        maxlength="256"
-        rows="3"
-        required
-      ></textarea>
+      <textarea v-model="novaTarefa.titulo" placeholder="Título ou descrición da tarefa" maxlength="256" rows="3"
+        required></textarea>
 
       <button type="submit">Grabar tarefa</button>
     </form>
@@ -53,13 +49,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
+import { useUsuarioStore } from "../store/usuarioStore.js";
 import {
   getTarefas,
   createTarefa,
-  updateTarefa,
+  updateTarefa
 } from "../services/tarefas.service.js";
+import {
+  getUsuarioById
+} from "../services/usuarios.service.js";
+import { useRoute } from "vue-router";
+import { watch } from "vue";
 
+const route = useRoute();
+const usuario = ref(null);
 const tarefas = ref([]);
 
 const novaTarefa = ref({
@@ -67,11 +71,53 @@ const novaTarefa = ref({
   dataLimite: "",
 });
 
+// Instanciamos a store de usuario
+const usuarioStore = useUsuarioStore();
+
 //  Cargar tarefas
-onMounted(async () => {
-  const res = await getTarefas();
-  tarefas.value = res.data;
+// cargar datis ao cambiar a ruta
+watch(() => route.params.id, async (idUsuario) => {
+  if (!idUsuario) {
+    return;
+  }
+  try {
+    const resUsuario = await getUsuarioById(idUsuario);
+    usuario.value = {
+      id: resUsuario.data.id,
+      nome: resUsuario.data.nome
+    };
+
+    const resTarefas = await getTarefas(idUsuario);
+    tarefas.value = resTarefas.data;
+  } catch (error) {
+    console.error("Erro ao cargar datos", error);
+  };
+},
+  { immediate: true }
+
+);
+/* onMounted(async () => {
+  debugger;
+  if (!usuarioStore.id) {
+    return;
+  }
+  usuario.value = {
+    id: usuarioStore.id,
+    nombre: usuarioStore.nome
+  }
+  try {
+    const res = await getTarefas(usuario.value.id);
+    tarefas.value = res.data;
+  } catch (error) {
+    console.error("Erro ao cargas as tarefas: ", error);
+  }
+
 });
+
+onUnmounted(() => {
+  usuarioStore.limparUsuario();
+  tarefas.value = [];
+}); */
 
 //  Crear tarefa
 async function engadirTarefa() {
@@ -80,6 +126,8 @@ async function engadirTarefa() {
       titulo: novaTarefa.value.titulo,
       dataLimite: novaTarefa.value.dataLimite,
       completada: false,
+      usuarioId: usuario.value.id,
+      usuarioNome: usuario.value.nome
     };
 
     const res = await createTarefa(nova);
@@ -114,7 +162,8 @@ async function completarTarefa(index) {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;   /* 👈 centra horizontalmente todo */
+  align-items: center;
+  /* 👈 centra horizontalmente todo */
   background: white;
   padding: 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -125,7 +174,8 @@ async function completarTarefa(index) {
   flex-direction: column;
   gap: 1rem;
   width: 60%;
-  margin: 0 auto;   /* centra o formulario */
+  margin: 0 auto;
+  /* centra o formulario */
 }
 
 
@@ -142,6 +192,7 @@ async function completarTarefa(index) {
   width: 200px;
 
 }
+
 .form-tarefa textarea {
   width: 100%;
 }
@@ -152,7 +203,8 @@ async function completarTarefa(index) {
   border: none;
   padding: 0.4rem 1rem;
   cursor: pointer;
-  align-self: center;   /* centra o botón */
+  align-self: center;
+  /* centra o botón */
 }
 
 .tabla-container {
@@ -166,6 +218,7 @@ table {
   border-collapse: collapse;
   margin-top: 1rem;
 }
+
 th,
 td {
   border: 1px solid #ddd;

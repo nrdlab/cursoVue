@@ -10,6 +10,7 @@ const routes = [
   { path: "/", name: "inicio", component: IniCio },
   { path: "/usuarios", name: "usuarios", component: XestionUsuarios },
   { path: "/tarefas", name: "tarefas", component: XestionTarefas },
+  { path: "/tarefas/:id", name: "xestionTarefas", component: XestionTarefas },
   { path: "/sobrenos", name: "sobrenos", component: SobreNos },
   { path: "/avisolegal", name: "avisolegal", component: AvisoLegal },
   { path: "/:pathMatch(.*)", name: "NotFound", component: NotFound },

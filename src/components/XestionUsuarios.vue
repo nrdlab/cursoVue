@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-guardar">
+      <button type="submit" class="btn-guardar" :disabled="novoUsuario.dni ==='' || novoUsuario.nome===''">
         Gardar
       </button>
     </form>
@@ -71,6 +71,8 @@
           <th>Nome</th>
           <th>Correo</th>
           <th>Provincia</th>
+          <th>Activo</th>
+          <th>Tipo de cuenta</th>
           <th>Accións</th>
         </tr>
       </thead>
@@ -82,13 +84,15 @@
           <td>{{ u.nome }}</td>
           <td>{{ u.correo }}</td>
           <td>{{ u.provincia }}</td>
+          <td style="text-align: center">{{ u.activo  ? "✅" : "❌" }}</td>
+          <td>{{ u.tipoCuenta }}</td>
 
           <td>
             <button @click="editarUsuario(index)">✏️</button>
             <button @click="eliminarUsuario(index)">🗑️</button>
 
             <!-- SeN params, SeN store -->
-            <router-link to="/tarefas">
+            <router-link :to="{name: 'xestionTarefas', params: {id: u.id}}" class="btn">
               📝 Tarefas
             </router-link>
           </td>
@@ -108,7 +112,9 @@ import {
   updateUsuario,
   deleteUsuario,
 } from "../services/usuarios.service.js";
+import { useUsuarioStore } from "../store/usuarioStore.js";
 
+const usuarioStore = useUsuarioStore();
 const usuarios = ref([]);
 
 const novoUsuario = reactive({
@@ -143,6 +149,8 @@ async function gardarUsuario() {
       await createUsuario(novoUsuario);
     }
 
+    usuarioStore.seleccionarUsuario(usuarioSeleccionado.value || novoUsuario);
+
     await cargarUsuarios();
     limparFormulario();
   } catch (error) {
@@ -156,6 +164,11 @@ async function eliminarUsuario(index) {
   try {
     await deleteUsuario(usuario.id);
     await cargarUsuarios();
+    if(usuarioSeleccionado.value && usuarioSeleccionado.value.id === usuario.id) {
+      limparFormulario();
+      usuarioStore.limparUsuario();
+
+    }
   } catch (error) {
     console.error(error);
   }
@@ -164,6 +177,9 @@ async function eliminarUsuario(index) {
 function editarUsuario(index) {
   Object.assign(novoUsuario, usuarios.value[index]);
   usuarioSeleccionado.value = usuarios.value[index];
+
+  usuarioStore.seleccionarUsuario(usuarios.value[index]);
+  
 }
 
 function limparFormulario() {

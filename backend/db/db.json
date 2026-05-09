@@ -1,4 +1,71 @@
 {
-    "usuarios": [],
-    "tarefas": []
+  "usuarios": [
+    {
+      "dni": "55555555K",
+      "nome": "Margarita Flor Branca",
+      "correo": "branca@mail.com",
+      "provincia": "Ourense",
+      "activo": true,
+      "tipoCuenta": "particular",
+      "id": 1
+    },
+    {
+      "dni": "00000000T",
+      "nome": "Sandalio Botín Descalzo",
+      "correo": "botin@mail.com",
+      "provincia": "Pontevedra",
+      "activo": true,
+      "tipoCuenta": "empresa",
+      "id": 2
+    },
+    {
+      "dni": "11111111H",
+      "nome": "Salvador Abril Santo",
+      "correo": "santo@mail.com",
+      "provincia": "Ourense",
+      "activo": false,
+      "tipoCuenta": "particular",
+      "id": 3
+    },
+    {
+      "dni": "12222",
+      "nome": "ddsaasd",
+      "correo": "nrd@fernandowirtz.com",
+      "provincia": "A Coruña",
+      "activo": false,
+      "tipoCuenta": "particular",
+      "id": 5
+    }
+  ],
+  "tarefas": [
+    {
+      "titulo": "gggggfdfg",
+      "dataLimite": "2026-05-09",
+      "completada": true,
+      "usuarioId": 1,
+      "id": 1
+    },
+    {
+      "titulo": "gdgfdgd",
+      "dataLimite": "2026-05-09",
+      "completada": true,
+      "usuarioId": 2,
+      "id": 2
+    },
+    {
+      "titulo": "gfdgfddg",
+      "dataLimite": "2026-05-15",
+      "completada": true,
+      "usuarioId": 3,
+      "id": 3
+    },
+    {
+      "titulo": "gdfgdgf",
+      "dataLimite": "2026-05-16",
+      "completada": false,
+      "usuarioId": 1,
+      "usuarioNome": "Margarita Flor Branca",
+      "id": 4
+    }
+  ]
 }
