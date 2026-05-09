@@ -43,7 +43,9 @@
       "dataLimite": "2026-05-09",
       "completada": true,
       "usuarioId": 1,
-      "id": 1
+      "id": 1,
+      "prioridade": "Baixa",
+      "usuarioNome": "Margarita Flor Branca"
     },
     {
       "titulo": "gdgfdgd",
@@ -62,10 +64,29 @@
     {
       "titulo": "gdfgdgf",
       "dataLimite": "2026-05-16",
+      "completada": true,
+      "usuarioId": 1,
+      "usuarioNome": "Margarita Flor Branca",
+      "id": 4,
+      "prioridade": "Alta"
+    },
+    {
+      "titulo": "trtetr",
+      "dataLimite": "2026-05-09",
+      "prioridade": "Media",
       "completada": false,
       "usuarioId": 1,
       "usuarioNome": "Margarita Flor Branca",
-      "id": 4
+      "id": 5
+    },
+    {
+      "titulo": "rterter",
+      "dataLimite": "2026-05-14",
+      "prioridade": "Alta",
+      "completada": false,
+      "usuarioId": 1,
+      "usuarioNome": "Margarita Flor Branca",
+      "id": 6
     }
   ]
 }

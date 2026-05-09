@@ -1,28 +1,41 @@
 // src/stores/usuarioStore.js
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 // Definimos a store para xestionar o estado do usuario seleccionado
 
-export const useUsuarioStore = defineStore('usuario', () => {
-  const id = ref(null)
-  const nome = ref('')
+export const useUsuarioStore = defineStore("usuario", () => {
+  const id = ref(null);
+  const nome = ref("");
 
-// Función para seleccionar un usuario e actualizar o estado
+  const numeroTarefas = ref(0);
 
-  function seleccionarUsuario(usuario) {debugger;
-    id.value = usuario.id
-    nome.value = usuario.nome
+  // Función para seleccionar un usuario e actualizar o estado
+
+  function seleccionarUsuario(usuario) {
+    id.value = usuario.id;
+    nome.value = usuario.nome;
   }
 
-// Función para limpar o usuario seleccionado
+  // Función para actualizar o número de tarefas do usuario
+  function actualizarNumeroTarefas(total) {
+    numeroTarefas.value = total;
+  }
+
+  // Función para limpar o usuario seleccionado
 
   function limparUsuario() {
-    id.value = null
-    nome.value = ''
+    id.value = null;
+    nome.value = "";
   }
 
-
-// Devolvemos o estado e as accións dispoñibles na store
-  return { id, nome, seleccionarUsuario, limparUsuario }
-})
+  // Devolvemos o estado e as accións dispoñibles na store
+  return {
+    id,
+    nome,
+    numeroTarefas,
+    seleccionarUsuario,
+    limparUsuario,
+    actualizarNumeroTarefas,
+  };
+});

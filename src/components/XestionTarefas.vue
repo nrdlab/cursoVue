@@ -1,5 +1,8 @@
 <template>
   <div class="xestion-tarefas">
+    <div class="barra-superior" v-if="usuarioStore.id">
+  Usuario: {{ usuarioStore.nome }} | Tarefas: {{ usuarioStore.numeroTarefas }}
+</div>
     <h3 v-if="usuario">📝 Código Usuario: {{ usuario.id }} === Tarefas de {{ usuario.nome }}</h3>
     <p v-else>Non hai usuario seleccionado</p>
 
@@ -9,8 +12,24 @@
 
       <textarea v-model="novaTarefa.titulo" placeholder="Título ou descrición da tarefa" maxlength="256" rows="3"
         required></textarea>
+      <select v-model="novaTarefa.prioridade" required>
+  <option value="">-- Prioridade --</option>
+  <option value="Alta">Alta</option>
+  <option value="Media">Media</option>
+  <option value="Baixa">Baixa</option>
+</select>
 
-      <button type="submit">Grabar tarefa</button>
+      <button type="submit">
+  {{ tarefaEditandoId ? "Actualizar tarefa" : "Grabar tarefa" }}
+</button>
+
+<button
+  v-if="tarefaEditandoId"
+  type="button"
+  @click="cancelarEdicion"
+>
+  Cancelar
+</button>
     </form>
 
     <!-- LISTAXE -->
@@ -24,6 +43,7 @@
           <th>ID</th>
           <th>Tarefa</th>
           <th>Data límite</th>
+          <th>Prioridade</th>
           <th>Estado</th>
           <th>Accións</th>
         </tr>
@@ -34,10 +54,12 @@
           <td style="text-align: center">{{ index + 1 }}</td>
           <td>{{ t.titulo }}</td>
           <td style="text-align: center">{{ t.dataLimite }}</td>
+          <td style="text-align: center">{{ t.prioridade }}</td>
           <td style="text-align: center">
             {{ t.completada ? "✅" : "❌" }}
           </td>
           <td style="text-align: center">
+            <button @click="editarTarefa(t)">✏️</button>
             <button @click="completarTarefa(index)" :disabled="t.completada">
               ✔️
             </button>
@@ -65,14 +87,17 @@ import { watch } from "vue";
 const route = useRoute();
 const usuario = ref(null);
 const tarefas = ref([]);
+const tarefaEditandoId = ref(null);
 
 const novaTarefa = ref({
   titulo: "",
   dataLimite: "",
+  prioridade: ""
 });
 
 // Instanciamos a store de usuario
 const usuarioStore = useUsuarioStore();
+
 
 //  Cargar tarefas
 // cargar datis ao cambiar a ruta
@@ -87,8 +112,11 @@ watch(() => route.params.id, async (idUsuario) => {
       nome: resUsuario.data.nome
     };
 
+    usuarioStore.seleccionarUsuario(usuario.value);
+
     const resTarefas = await getTarefas(idUsuario);
     tarefas.value = resTarefas.data;
+    usuarioStore.actualizarNumeroTarefas(tarefas.value.length);
   } catch (error) {
     console.error("Erro ao cargar datos", error);
   };
@@ -96,49 +124,74 @@ watch(() => route.params.id, async (idUsuario) => {
   { immediate: true }
 
 );
-/* onMounted(async () => {
-  debugger;
-  if (!usuarioStore.id) {
-    return;
-  }
-  usuario.value = {
-    id: usuarioStore.id,
-    nombre: usuarioStore.nome
-  }
-  try {
-    const res = await getTarefas(usuario.value.id);
-    tarefas.value = res.data;
-  } catch (error) {
-    console.error("Erro ao cargas as tarefas: ", error);
-  }
 
-});
-
-onUnmounted(() => {
-  usuarioStore.limparUsuario();
-  tarefas.value = [];
-}); */
 
 //  Crear tarefa
 async function engadirTarefa() {
+   if (!usuario.value) return;
+
+  const datosTarefa = {
+    titulo: novaTarefa.value.titulo,
+    dataLimite: novaTarefa.value.dataLimite,
+    prioridade: novaTarefa.value.prioridade,
+    usuarioId: usuario.value.id,
+    usuarioNome: usuario.value.nome,
+  };
+
   try {
-    const nova = {
-      titulo: novaTarefa.value.titulo,
-      dataLimite: novaTarefa.value.dataLimite,
-      completada: false,
-      usuarioId: usuario.value.id,
-      usuarioNome: usuario.value.nome
-    };
+    if (tarefaEditandoId.value) {
+      const res = await updateTarefa(tarefaEditandoId.value, datosTarefa);
 
-    const res = await createTarefa(nova);
-    tarefas.value.push(res.data);
+      const index = tarefas.value.findIndex(
+        (t) => t.id === tarefaEditandoId.value
+      );
 
-    novaTarefa.value.titulo = "";
-    novaTarefa.value.dataLimite = "";
+      if (index !== -1) {
+        tarefas.value.splice(index, 1, res.data);
+      }
+
+      tarefaEditandoId.value = null;
+    } else {
+      const nova = {
+        ...datosTarefa,
+        completada: false,
+      };
+
+      const res = await createTarefa(nova);
+      tarefas.value.push(res.data);
+
+      usuarioStore.actualizarNumeroTarefas(tarefas.value.length);
+    }
+
+    limparFormulario();
   } catch (error) {
     console.error("Erro ao gardar tarefa", error);
   }
 }
+
+function editarTarefa(tarefa) {
+  tarefaEditandoId.value = tarefa.id;
+
+  novaTarefa.value = {
+    titulo: tarefa.titulo,
+    dataLimite: tarefa.dataLimite,
+    prioridade: tarefa.prioridade || "",
+  };
+}
+
+function cancelarEdicion() {
+  tarefaEditandoId.value = null;
+  limparFormulario();
+}
+
+function limparFormulario() {
+  novaTarefa.value = {
+    titulo: "",
+    dataLimite: "",
+    prioridade: "",
+  };
+}
+
 
 //  Completar tarefa
 async function completarTarefa(index) {
@@ -235,5 +288,22 @@ h4 {
   background-color: #73aff0;
   color: white;
   padding: 0.5rem;
+}
+.barra-superior {
+  width: 80%;
+  max-width: 1000px;
+  background-color: #007bff;
+  color: white;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+.form-tarefa select {
+  padding: 0.4rem;
+  border: 1px solid #ddd;
+  width: 220px;
 }
 </style>

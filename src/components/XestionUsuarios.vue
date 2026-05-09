@@ -117,6 +117,7 @@ import { useUsuarioStore } from "../store/usuarioStore.js";
 const usuarioStore = useUsuarioStore();
 const usuarios = ref([]);
 
+
 const novoUsuario = reactive({
   dni: "",
   nome: "",

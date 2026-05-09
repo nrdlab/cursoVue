@@ -15,8 +15,3 @@ export const createTarefa = async (tarefa) => {
 export const updateTarefa = async (id, tarefa) => {
     return await axios.patch(`${API_URL}/tarefas/${id}`, tarefa);
 }
-//DELETE tarefa
-export const deleteTarefa = async (id) => {
-    return await axios.delete(`${API_URL}/tarefas/${id}`);
-
-}
