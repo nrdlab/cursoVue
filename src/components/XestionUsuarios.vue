@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-guardar" :disabled="novoUsuario.dni ==='' || novoUsuario.nome===''">
+      <button type="submit" class="btn-guardar" :disabled="novoUsuario.dni === '' || novoUsuario.nome === ''">
         Gardar
       </button>
     </form>
@@ -84,7 +84,7 @@
           <td>{{ u.nome }}</td>
           <td>{{ u.correo }}</td>
           <td>{{ u.provincia }}</td>
-          <td style="text-align: center">{{ u.activo  ? "✅" : "❌" }}</td>
+          <td style="text-align: center">{{ u.activo ? "✅" : "❌" }}</td>
           <td>{{ u.tipoCuenta }}</td>
 
           <td>
@@ -92,7 +92,7 @@
             <button @click="eliminarUsuario(index)">🗑️</button>
 
             <!-- SeN params, SeN store -->
-            <router-link :to="{name: 'xestionTarefas', params: {id: u.id}}" class="btn">
+            <router-link :to="{ name: 'xestionTarefas', params: { id: u.id } }" class="btn">
               📝 Tarefas
             </router-link>
           </td>
@@ -165,7 +165,7 @@ async function eliminarUsuario(index) {
   try {
     await deleteUsuario(usuario.id);
     await cargarUsuarios();
-    if(usuarioSeleccionado.value && usuarioSeleccionado.value.id === usuario.id) {
+    if (usuarioSeleccionado.value && usuarioSeleccionado.value.id === usuario.id) {
       limparFormulario();
       usuarioStore.limparUsuario();
 
@@ -180,7 +180,7 @@ function editarUsuario(index) {
   usuarioSeleccionado.value = usuarios.value[index];
 
   usuarioStore.seleccionarUsuario(usuarios.value[index]);
-  
+
 }
 
 function limparFormulario() {

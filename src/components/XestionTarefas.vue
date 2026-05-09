@@ -1,8 +1,8 @@
 <template>
   <div class="xestion-tarefas">
     <div class="barra-superior" v-if="usuarioStore.id">
-  Usuario: {{ usuarioStore.nome }} | Tarefas: {{ usuarioStore.numeroTarefas }}
-</div>
+      Usuario: {{ usuarioStore.nome }} | Tarefas: {{ usuarioStore.numeroTarefas }}
+    </div>
     <h3 v-if="usuario">📝 Código Usuario: {{ usuario.id }} === Tarefas de {{ usuario.nome }}</h3>
     <p v-else>Non hai usuario seleccionado</p>
 
@@ -13,23 +13,19 @@
       <textarea v-model="novaTarefa.titulo" placeholder="Título ou descrición da tarefa" maxlength="256" rows="3"
         required></textarea>
       <select v-model="novaTarefa.prioridade" required>
-  <option value="">-- Prioridade --</option>
-  <option value="Alta">Alta</option>
-  <option value="Media">Media</option>
-  <option value="Baixa">Baixa</option>
-</select>
+        <option value="">-- Prioridade --</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Baixa">Baixa</option>
+      </select>
 
       <button type="submit">
-  {{ tarefaEditandoId ? "Actualizar tarefa" : "Grabar tarefa" }}
-</button>
+        {{ tarefaEditandoId ? "Actualizar tarefa" : "Grabar tarefa" }}
+      </button>
 
-<button
-  v-if="tarefaEditandoId"
-  type="button"
-  @click="cancelarEdicion"
->
-  Cancelar
-</button>
+      <button v-if="tarefaEditandoId" type="button" @click="cancelarEdicion">
+        Cancelar
+      </button>
     </form>
 
     <!-- LISTAXE -->
@@ -128,7 +124,7 @@ watch(() => route.params.id, async (idUsuario) => {
 
 //  Crear tarefa
 async function engadirTarefa() {
-   if (!usuario.value) return;
+  if (!usuario.value) return;
 
   const datosTarefa = {
     titulo: novaTarefa.value.titulo,
@@ -289,6 +285,7 @@ h4 {
   color: white;
   padding: 0.5rem;
 }
+
 .barra-superior {
   width: 80%;
   max-width: 1000px;
